@@ -1,35 +1,9 @@
-if(!exists("NEI")){
-    NEI <- readRDS("./data/summarySCC_PM25.rds")
-}
-if(!exists("SCC")){
-    SCC <- readRDS("./data/Source_Classification_Code.rds")
-}
-# merge the two data sets
-if(!exists("NEISCC")){
-    NEISCC <- merge(NEI, SCC, by="SCC")
-}
-
-library(ggplot2)
-
-# Compare emissions from motor vehicle sources in Baltimore City with emissions from motor
-# vehicle sources in Los Angeles County, California (fips == "06037").
-# Which city has seen greater changes over time in motor vehicle emissions?
-
-# 24510 is Baltimore, see plot2.R, 06037 is LA CA
-# Searching for ON-ROAD type in NEI
-# Don't actually know it this is the intention, but searching for 'motor' in SCC only gave a subset (non-cars)
-subsetNEI <- NEI[(NEI$fips=="24510"|NEI$fips=="06037") & NEI$type=="ON-ROAD",  ]
-
-aggregatedTotalByYearAndFips <- aggregate(Emissions ~ year + fips, subsetNEI, sum)
-aggregatedTotalByYearAndFips$fips[aggregatedTotalByYearAndFips$fips=="24510"] <- "Baltimore, MD"
-aggregatedTotalByYearAndFips$fips[aggregatedTotalByYearAndFips$fips=="06037"] <- "Los Angeles, CA"
-
-png("plot6.png", width=1040, height=480)
-g <- ggplot(aggregatedTotalByYearAndFips, aes(factor(year), Emissions))
-g <- g + facet_grid(. ~ fips)
-g <- g + geom_bar(stat="identity")  +
-xlab("year") +
-ylab(expression('Total PM'[2.5]*" Emissions")) +
-ggtitle('Total Emissions from motor vehicle (type=ON-ROAD) in Baltimore City, MD (fips = "24510") vs Los Angeles, CA (fips = "06037")  1999-2008')
-print(g)
-dev.off()
+> plot_6 <- subset(NEI_SCC, (fips == "24510" | fips == "06037") & type =="ON-ROAD", c("Emissions", "Year","type", "fips"))
+> plot_6 <- rename(plot_6, c("fips"="City"))
+> plot_6$City <- factor(plot_6$City, levels=c("06037", "24510"), labels=c("Los Angeles, CA", "Baltimore, MD"))
+> plot_6 <- melt(plot_6, id=c("Year", "City"), measure.vars=c("Emissions"))
+> plot_6 <- dcast(plot_6, City + Year ~ variable, sum)
+> plot_6[2:8,"Change"] <- diff(plot_6$Emissions)
+> plot_6[c(1,5),4] <- 0
+> ggplot(data=plot_6, aes(x=Year, y=Change, group=City, color=City)) + geom_line() + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Change in Emissions (tons)") + ggtitle("Motor Vehicle PM2.5 Emissions Changes: Baltimore vs. LA")
+> ggsave(file="plot_6.png")

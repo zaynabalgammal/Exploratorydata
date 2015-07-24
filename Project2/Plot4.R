@@ -1,31 +1,4 @@
-if(!exists("NEI")){
-    NEI <- readRDS("./data/summarySCC_PM25.rds")
-}
-if(!exists("SCC")){
-    SCC <- readRDS("./data/Source_Classification_Code.rds")
-}
-# merge the two data sets
-if(!exists("NEISCC")){
-    NEISCC <- merge(NEI, SCC, by="SCC")
-}
-
-library(ggplot2)
-
-# Across the United States, how have emissions from coal combustion-related sources changed from 1999-2008?
-
-# fetch all NEIxSCC records with Short.Name (SCC) Coal
-coalMatches  <- grepl("coal", NEISCC$Short.Name, ignore.case=TRUE)
-subsetNEISCC <- NEISCC[coalMatches, ]
-
-aggregatedTotalByYear <- aggregate(Emissions ~ year, subsetNEISCC, sum)
-
-
-
-png("plot4.png", width=640, height=480)
-g <- ggplot(aggregatedTotalByYear, aes(factor(year), Emissions))
-g <- g + geom_bar(stat="identity") +
-xlab("year") +
-ylab(expression('Total PM'[2.5]*" Emissions")) +
-ggtitle('Total Emissions from coal sources from 1999 to 2008')
-print(g)
-dev.off()
+> plot_4 <- subset(NEI_SCC, grepl('Coal',NEI_SCC$Short.Name, fixed=TRUE), c("Emissions", "Year","type", "Short.Name"))
+> plot_4 <- aggregate(Emissions ~ Year, plot_4, sum)
+> ggplot(data=plot_4, aes(x=Year, y=Emissions)) + geom_line() + geom_point( size=4, shape=21, fill="white") + xlab("Year") + ylab("Emissions (thousands of tons)") + ggtitle("Total United States PM2.5 Coal Emissions")
+> ggsave(file="plot_4.png")

@@ -1,18 +1,7 @@
-
-if(!exists("NEI")){
-    NEI <- readRDS("./data/summarySCC_PM25.rds")
-}
-if(!exists("SCC")){
-    SCC <- readRDS("./data/Source_Classification_Code.rds")
-}
-
-# Have total emissions from PM2.5 decreased in the Baltimore City, Maryland (fips == "24510") from 1999 to 2008?
-# Use the base plotting system to make a plot answering this question.
-
-subsetNEI  <- NEI[NEI$fips=="24510", ]
-
-aggregatedTotalByYear <- aggregate(Emissions ~ year, subsetNEI, sum)
-
-png('plot2.png')
-barplot(height=aggregatedTotalByYear$Emissions, names.arg=aggregatedTotalByYear$year, xlab="years", ylab=expression('total PM'[2.5]*' emission'),main=expression('Total PM'[2.5]*' in the Baltimore City, MD emissions at various years'))
-dev.off()
+> plot_2 <- subset(NEI_SCC, fips == "24510", c("Emissions", "Year","type"))
+> plot_2 <- aggregate(Emissions ~ Year, plot_2, sum)
+> plot(plot_2$Year,plot_2$Emissions, main="Total Baltimore PM2.5 Emissions", "b", xlab="Year", ylab="Emissions (thousand tons)",xaxt="n")
+> axis(side=1, at=c("1999", "2002", "2005", "2008"))
+> par(mar=c(5.1,4.1,5.1,2.1))
+> dev.copy(png, file="plot_2.png", width=720, height=480)
+> dev.off()
